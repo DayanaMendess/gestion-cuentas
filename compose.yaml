@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: trinity-postgres
+    environment:
+      POSTGRES_DB: trinity_financial
+      POSTGRES_USER: trinity_user
+      POSTGRES_PASSWORD: trinity_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
