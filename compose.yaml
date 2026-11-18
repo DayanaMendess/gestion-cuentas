@@ -1,11 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: trinity-postgres
+    container_name: gestion-cuentas-postgres
     environment:
-      POSTGRES_DB: trinity_financial
-      POSTGRES_USER: trinity_user
-      POSTGRES_PASSWORD: trinity_password
+      POSTGRES_DB: gestion_cuentas
+      POSTGRES_USER: gestion_user
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Define DB_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
