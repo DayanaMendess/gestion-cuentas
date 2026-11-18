@@ -1,0 +1,34 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-accounts-table
+      author: sofia-mendes
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE accounts (
+                  id UUID PRIMARY KEY,
+                  client_id UUID NOT NULL REFERENCES clients(id) ON DELETE RESTRICT,
+                  account_type VARCHAR(20) NOT NULL,
+                  account_number VARCHAR(10) NOT NULL UNIQUE,
+                  status VARCHAR(20) NOT NULL,
+                  balance NUMERIC(19,2) NOT NULL DEFAULT 0,
+                  available_balance NUMERIC(19,2) NOT NULL DEFAULT 0,
+                  gmf_exempt BOOLEAN NOT NULL DEFAULT FALSE,
+                  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+                  updated_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+                  CONSTRAINT account_type_valid
+                      CHECK (account_type IN ('SAVINGS', 'CURRENT')),
+                  CONSTRAINT account_status_valid
+                      CHECK (status IN ('ACTIVE', 'INACTIVE', 'CANCELLED')),
+                  CONSTRAINT account_number_valid
+                      CHECK (
+                          (account_type = 'SAVINGS' AND account_number ~ '^53[0-9]{8}$')
+                          OR
+                          (account_type = 'CURRENT' AND account_number ~ '^33[0-9]{8}$')
+                      ),
+                  CONSTRAINT savings_balance_valid
+                      CHECK (account_type <> 'SAVINGS' OR balance >= 0)
+              );
+
+              CREATE INDEX idx_accounts_client_id ON accounts(client_id);

@@ -1,13 +1,14 @@
 package co.sofiamendes.gestioncuentas.service;
 
 import co.sofiamendes.gestioncuentas.dto.CreateClientRequest;
+import co.sofiamendes.gestioncuentas.dto.UpdateClientRequest;
 import co.sofiamendes.gestioncuentas.entity.Client;
+import co.sofiamendes.gestioncuentas.repository.AccountRepository;
 import co.sofiamendes.gestioncuentas.repository.ClientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import co.sofiamendes.gestioncuentas.dto.UpdateClientRequest; 
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -18,9 +19,12 @@ import java.util.UUID;
 public class ClientService {
 
     private final ClientRepository clientRepository;
+    private final AccountRepository accountRepository;
 
-    public ClientService(ClientRepository clientRepository) {
+    public ClientService(ClientRepository clientRepository,
+                         AccountRepository accountRepository) {
         this.clientRepository = clientRepository;
+        this.accountRepository = accountRepository;
     }
 
     @Transactional
@@ -60,39 +64,47 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-public Client findById(UUID id) {
-    return clientRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(
-                    HttpStatus.NOT_FOUND,
-                    "Cliente no encontrado"
-            ));
-}
-
-@Transactional
-public Client update(UUID id, UpdateClientRequest request) {
-    LocalDate today = LocalDate.now(ZoneId.of("America/Bogota"));
-
-    if (request.birthDate().plusYears(18).isAfter(today)) {
-        throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "El cliente debe ser mayor de edad"
-        );
+    public Client findById(UUID id) {
+        return clientRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Cliente no encontrado"
+                ));
     }
 
-    Client client = findById(id);
-    client.update(
-            request.firstName(),
-            request.lastName(),
-            request.email(),
-            request.birthDate()
-    );
+    @Transactional
+    public Client update(UUID id, UpdateClientRequest request) {
+        LocalDate today = LocalDate.now(ZoneId.of("America/Bogota"));
 
-    return client;
-}
+        if (request.birthDate().plusYears(18).isAfter(today)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "El cliente debe ser mayor de edad"
+            );
+        }
 
-@Transactional
-public void delete(UUID id) {
-    Client client = findById(id);
-    clientRepository.delete(client);
-}
+        Client client = findById(id);
+        client.update(
+                request.firstName(),
+                request.lastName(),
+                request.email(),
+                request.birthDate()
+        );
+
+        return client;
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        Client client = findById(id);
+
+        if (accountRepository.existsByClient_Id(id)) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "No se puede eliminar un cliente que tiene cuentas"
+            );
+        }
+
+        clientRepository.delete(client);
+    }
 }
