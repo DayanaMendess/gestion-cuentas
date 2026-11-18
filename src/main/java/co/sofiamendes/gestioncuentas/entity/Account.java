@@ -75,6 +75,20 @@ public class Account {
     this.status = newStatus;
 }
 
+public boolean isActive() {
+    return status == AccountStatus.ACTIVE;
+}
+
+public void deposit(BigDecimal amount) {
+    balance = balance.add(amount);
+    availableBalance = availableBalance.add(amount);
+}
+
+public void withdraw(BigDecimal amount) {
+    balance = balance.subtract(amount);
+    availableBalance = availableBalance.subtract(amount);
+}
+
     public UUID getId() { return id; }
     public Client getClient() { return client; }
     public AccountType getAccountType() { return accountType; }
