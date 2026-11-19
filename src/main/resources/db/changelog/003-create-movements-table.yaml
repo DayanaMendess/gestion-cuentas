@@ -1,0 +1,41 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-movements-table
+      author: sofia-mendes
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE movements (
+                  id UUID PRIMARY KEY,
+                  operation_id UUID NOT NULL,
+                  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE RESTRICT,
+                  related_account_id UUID REFERENCES accounts(id) ON DELETE RESTRICT,
+                  movement_type VARCHAR(20) NOT NULL,
+                  amount NUMERIC(19,2) NOT NULL,
+                  balance_after NUMERIC(19,2) NOT NULL,
+                  available_balance_after NUMERIC(19,2) NOT NULL,
+                  created_at TIMESTAMP WITH TIME ZONE NOT NULL,
+
+                  CONSTRAINT movement_amount_positive CHECK (amount > 0),
+                  CONSTRAINT movement_type_valid CHECK (
+                      movement_type IN (
+                          'DEPOSIT', 'WITHDRAWAL',
+                          'TRANSFER_DEBIT', 'TRANSFER_CREDIT'
+                      )
+                  ),
+                  CONSTRAINT movement_accounts_valid CHECK (
+                      (movement_type IN ('DEPOSIT', 'WITHDRAWAL')
+                          AND related_account_id IS NULL)
+                      OR
+                      (movement_type IN ('TRANSFER_DEBIT', 'TRANSFER_CREDIT')
+                          AND related_account_id IS NOT NULL
+                          AND related_account_id <> account_id)
+                  ),
+                  CONSTRAINT movement_once_per_account
+                      UNIQUE (operation_id, account_id)
+              );
+
+              CREATE INDEX idx_movements_account_time
+                  ON movements(account_id, created_at DESC);
+              CREATE INDEX idx_movements_operation
+                  ON movements(operation_id);

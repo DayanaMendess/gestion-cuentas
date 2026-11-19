@@ -2,3 +2,9 @@ databaseChangeLog:
   - include:
       file: 001-create-clients-table.yaml
       relativeToChangelogFile: true
+  - include:
+      file: 002-create-accounts-table.yaml
+      relativeToChangelogFile: true
+  - include:
+      file: 003-create-movements-table.yaml
+      relativeToChangelogFile: true

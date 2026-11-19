@@ -1,4 +1,4 @@
-package co.sofiamendes.trinityfinancial.controller;
+package co.sofiamendes.gestioncuentas.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,7 +14,7 @@ public class HealthController {
     public Map<String, String> health() {
         return Map.of(
                 "status", "ok",
-                "application", "trinity-financial"
+                "application", "gestion-cuentas"
         );
     }
 }
